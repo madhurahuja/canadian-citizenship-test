@@ -19,6 +19,10 @@ import {
 } from '@mui/icons-material';
 import Quiz from './components/Quiz';
 import Home from './components/Home';
+import Footer from './components/Footer';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Disclaimer from './pages/Disclaimer';
 
 const App: React.FC = () => {
   // Use system preference as default mode
@@ -82,7 +86,11 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Box sx={{ flexGrow: 1 }}>
+        <Box sx={{ 
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
           <AppBar position="fixed" color="default" elevation={1}>
             <Toolbar>
               <Box
@@ -134,12 +142,17 @@ const App: React.FC = () => {
           </AppBar>
           <Toolbar /> {/* Empty toolbar to offset the fixed AppBar */}
           
-          <Container>
+          <Container sx={{ flex: 1, py: 4 }}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/quiz" element={<Quiz />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/disclaimer" element={<Disclaimer />} />
             </Routes>
           </Container>
+
+          <Footer />
         </Box>
       </Router>
     </ThemeProvider>

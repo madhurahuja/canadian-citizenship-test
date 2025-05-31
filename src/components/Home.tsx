@@ -6,14 +6,12 @@ import {
   Button,
   Card,
   CardContent,
-  Grid,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   Paper,
   Link as MuiLink,
-  Divider,
 } from '@mui/material';
 import {
   School,

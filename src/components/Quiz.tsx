@@ -16,11 +16,17 @@ import {
   InputLabel,
   Grid,
   Chip,
+  Paper,
+  Tooltip,
 } from '@mui/material';
 import { Question } from '../types';
-import { questions } from '../data/questions';
+import { getRandomQuestions } from '../data/questions';
+import TimerIcon from '@mui/icons-material/Timer';
+import QuizIcon from '@mui/icons-material/Quiz';
+import CategoryIcon from '@mui/icons-material/Category';
 
 const QUESTION_TIME_LIMIT = 30; // Time limit in seconds per question
+const QUESTIONS_PER_TEST = 20; // Number of questions per test attempt
 
 const Quiz: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -31,25 +37,29 @@ const Quiz: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [timeLeft, setTimeLeft] = useState(QUESTION_TIME_LIMIT);
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-  const [filteredQuestions, setFilteredQuestions] = useState<Question[]>(questions);
+  const [questions, setQuestions] = useState<Question[]>(getRandomQuestions(QUESTIONS_PER_TEST));
+  const [categoryStats, setCategoryStats] = useState<Record<string, { total: number; correct: number }>>({});
 
-  // Get unique categories
-  const categories = ['all', ...Array.from(new Set(questions.map(q => q.category)))];
+  // Get unique categories from all questions
+  const categories = ['all', ...Array.from(new Set(questions.map(q => q.category)))].sort();
 
   useEffect(() => {
-    // Filter questions when category changes
-    if (selectedCategory === 'all') {
-      setFilteredQuestions(questions);
-    } else {
-      setFilteredQuestions(questions.filter(q => q.category === selectedCategory));
-    }
-    // Reset quiz state when changing categories
+    // Get new set of questions when category changes
+    const newQuestions = getRandomQuestions(QUESTIONS_PER_TEST, selectedCategory);
+    setQuestions(newQuestions);
+    // Reset quiz state
+    resetQuizState();
+  }, [selectedCategory]);
+
+  const resetQuizState = () => {
     setCurrentQuestion(0);
     setScore(0);
     setQuizCompleted(false);
     setSelectedAnswer('');
     setShowAnswer(false);
-  }, [selectedCategory]);
+    setTimeLeft(QUESTION_TIME_LIMIT);
+    setCategoryStats({});
+  };
 
   useEffect(() => {
     // Timer logic
@@ -73,10 +83,26 @@ const Quiz: React.FC = () => {
   const handleTimeUp = () => {
     if (!showAnswer) {
       setShowAnswer(true);
-      if (selectedAnswer === filteredQuestions[currentQuestion].correctAnswer) {
-        setScore(score + 1);
+      if (selectedAnswer === questions[currentQuestion].correctAnswer) {
+        updateScore(true);
       }
     }
+  };
+
+  const updateScore = (isCorrect: boolean) => {
+    if (isCorrect) {
+      setScore(score + 1);
+    }
+    
+    // Update category statistics
+    const currentCategory = questions[currentQuestion].category;
+    setCategoryStats(prev => ({
+      ...prev,
+      [currentCategory]: {
+        total: (prev[currentCategory]?.total || 0) + 1,
+        correct: (prev[currentCategory]?.correct || 0) + (isCorrect ? 1 : 0)
+      }
+    }));
   };
 
   const handleAnswerSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,14 +117,16 @@ const Quiz: React.FC = () => {
     if (!showAnswer) {
       if (timer) clearInterval(timer);
       setShowAnswer(true);
-      if (selectedAnswer === filteredQuestions[currentQuestion].correctAnswer) {
-        setScore(score + 1);
+      if (selectedAnswer === questions[currentQuestion].correctAnswer) {
+        updateScore(true);
+      } else {
+        updateScore(false);
       }
     } else {
       setSelectedAnswer('');
       setShowAnswer(false);
       setTimeLeft(QUESTION_TIME_LIMIT);
-      if (currentQuestion < filteredQuestions.length - 1) {
+      if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
       } else {
         setQuizCompleted(true);
@@ -107,35 +135,64 @@ const Quiz: React.FC = () => {
   };
 
   const restartQuiz = () => {
-    setCurrentQuestion(0);
-    setSelectedAnswer('');
-    setShowAnswer(false);
-    setScore(0);
-    setQuizCompleted(false);
-    setTimeLeft(QUESTION_TIME_LIMIT);
+    // Get new set of questions
+    const newQuestions = getRandomQuestions(QUESTIONS_PER_TEST, selectedCategory);
+    setQuestions(newQuestions);
+    resetQuizState();
   };
 
   if (quizCompleted) {
+    const totalScore = (score / questions.length) * 100;
+    const passingScore = 75; // 75% is typically required to pass the actual citizenship test
+
     return (
-      <Box sx={{ maxWidth: 600, margin: '0 auto', padding: 3 }}>
+      <Box sx={{ maxWidth: 800, margin: '0 auto', padding: 3 }}>
         <Card>
           <CardContent>
             <Typography variant="h5" gutterBottom>
               Quiz Completed!
             </Typography>
-            <Typography variant="h6">
-              Your Score: {score} out of {filteredQuestions.length}
+            
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6">
+                Final Score: {score} out of {questions.length} ({totalScore.toFixed(1)}%)
+              </Typography>
+              <Alert severity={totalScore >= passingScore ? "success" : "warning"} sx={{ mt: 2 }}>
+                {totalScore >= passingScore 
+                  ? "Congratulations! You've passed the practice test!"
+                  : "Keep practicing! You need 75% to pass the actual test."}
+              </Alert>
+            </Box>
+
+            <Typography variant="h6" gutterBottom>
+              Performance by Category:
             </Typography>
-            <Typography variant="body1" sx={{ mt: 2 }}>
-              Percentage: {((score / filteredQuestions.length) * 100).toFixed(1)}%
-            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
+              {Object.entries(categoryStats).map(([category, stats]) => (
+                <Paper key={category} sx={{ p: 2 }}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    {category}
+                  </Typography>
+                  <Typography variant="body2">
+                    Correct: {stats.correct}/{stats.total} ({((stats.correct/stats.total) * 100).toFixed(1)}%)
+                  </Typography>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={(stats.correct/stats.total) * 100}
+                    sx={{ mt: 1 }}
+                  />
+                </Paper>
+              ))}
+            </Box>
+
             <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
               <Button
                 variant="contained"
                 color="primary"
                 onClick={restartQuiz}
+                startIcon={<QuizIcon />}
               >
-                Restart Quiz
+                Try New Questions
               </Button>
               <FormControl sx={{ minWidth: 200 }}>
                 <InputLabel>Category</InputLabel>
@@ -143,6 +200,7 @@ const Quiz: React.FC = () => {
                   value={selectedCategory}
                   onChange={handleCategoryChange}
                   label="Category"
+                  startAdornment={<CategoryIcon sx={{ mr: 1 }} />}
                 >
                   {categories.map((category) => (
                     <MenuItem key={category} value={category}>
@@ -158,19 +216,20 @@ const Quiz: React.FC = () => {
     );
   }
 
-  const question: Question = filteredQuestions[currentQuestion];
-  const progress = ((currentQuestion + 1) / filteredQuestions.length) * 100;
+  const question = questions[currentQuestion];
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
 
   return (
-    <Box sx={{ maxWidth: 600, margin: '0 auto', padding: 3 }}>
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <Box sx={{ flex: 2 }}>
+    <Box sx={{ maxWidth: 800, margin: '0 auto', padding: 3 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
+        <Box>
           <FormControl fullWidth>
             <InputLabel>Category</InputLabel>
             <Select
               value={selectedCategory}
               onChange={handleCategoryChange}
               label="Category"
+              startAdornment={<CategoryIcon sx={{ mr: 1 }} />}
             >
               {categories.map((category) => (
                 <MenuItem key={category} value={category}>
@@ -180,22 +239,34 @@ const Quiz: React.FC = () => {
             </Select>
           </FormControl>
         </Box>
-        <Box sx={{ flex: 1 }}>
-          <Chip
-            label={`Time: ${timeLeft}s`}
-            color={timeLeft < 10 ? "warning" : "primary"}
-            sx={{ width: '100%', height: '40px' }}
-          />
+        <Box>
+          <Tooltip title="Time remaining for current question">
+            <Chip
+              icon={<TimerIcon />}
+              label={`${timeLeft}s`}
+              color={timeLeft < 10 ? "warning" : "primary"}
+              sx={{ width: '100%', height: '100%' }}
+            />
+          </Tooltip>
         </Box>
       </Box>
       
-      <LinearProgress variant="determinate" value={progress} sx={{ mb: 3 }} />
+      <Box sx={{ mb: 3 }}>
+        <LinearProgress 
+          variant="determinate" 
+          value={progress} 
+          sx={{ height: 10, borderRadius: 5 }}
+        />
+        <Typography variant="body2" color="text.secondary" align="right" sx={{ mt: 1 }}>
+          Question {currentQuestion + 1} of {questions.length}
+        </Typography>
+      </Box>
       
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Question {currentQuestion + 1} of {filteredQuestions.length}
+              Score: {score}/{currentQuestion + (showAnswer ? 1 : 0)}
             </Typography>
             <Chip label={question.category} color="primary" size="small" />
           </Box>
@@ -204,7 +275,11 @@ const Quiz: React.FC = () => {
             {question.question}
           </Typography>
           
-          <RadioGroup value={selectedAnswer} onChange={handleAnswerSelect}>
+          <RadioGroup 
+            value={selectedAnswer} 
+            onChange={handleAnswerSelect}
+            sx={{ mb: 2 }}
+          >
             {question.options.map((option, index) => (
               <FormControlLabel
                 key={index}
@@ -212,6 +287,14 @@ const Quiz: React.FC = () => {
                 control={<Radio />}
                 label={option}
                 disabled={showAnswer}
+                sx={{
+                  ...(showAnswer && option === question.correctAnswer && {
+                    color: 'success.main',
+                  }),
+                  ...(showAnswer && selectedAnswer === option && option !== question.correctAnswer && {
+                    color: 'error.main',
+                  }),
+                }}
               />
             ))}
           </RadioGroup>
@@ -236,6 +319,7 @@ const Quiz: React.FC = () => {
             onClick={handleSubmit}
             disabled={!selectedAnswer && !showAnswer}
             sx={{ mt: 3 }}
+            fullWidth
           >
             {showAnswer ? "Next Question" : "Submit Answer"}
           </Button>
