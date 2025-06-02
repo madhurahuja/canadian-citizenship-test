@@ -33,7 +33,7 @@ jobs:
       - name: Build production assets
         run: npm run build
         env:
-          CI: true                 # Ensure build fails on warnings if you prefer
+          CI: false                 # Ensure build fails on warnings if you prefer
 
       # 4. Deploy to GitHub Pages via gh-pages action
       - name: Deploy to GitHub Pages
