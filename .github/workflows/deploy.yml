@@ -43,5 +43,5 @@ jobs:
           folder: build                  # The folder the action should deploy.
           clean: true                    # Remove all existing files from gh-pages before deployment
           commit-message: "chore: deploy React build to gh-pages [skip ci]"
-          # Use the default GITHUB_TOKEN to push. If you need a PAT, replace with your secret.
+          # Use the default GITHUB_TOKEN to push. If you need a PAT, replace your secret.
           token: ${{ secrets.GITHUB_TOKEN }}
