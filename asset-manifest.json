@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/canadian-citizenship-test/static/css/main.e6c13ad2.css",
-    "main.js": "/canadian-citizenship-test/static/js/main.a02d289f.js",
+    "main.js": "/canadian-citizenship-test/static/js/main.8bbc1d44.js",
     "static/js/453.0b35c27e.chunk.js": "/canadian-citizenship-test/static/js/453.0b35c27e.chunk.js",
     "index.html": "/canadian-citizenship-test/index.html",
     "main.e6c13ad2.css.map": "/canadian-citizenship-test/static/css/main.e6c13ad2.css.map",
-    "main.a02d289f.js.map": "/canadian-citizenship-test/static/js/main.a02d289f.js.map",
+    "main.8bbc1d44.js.map": "/canadian-citizenship-test/static/js/main.8bbc1d44.js.map",
     "453.0b35c27e.chunk.js.map": "/canadian-citizenship-test/static/js/453.0b35c27e.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.a02d289f.js"
+    "static/js/main.8bbc1d44.js"
   ]
 }
