@@ -1,0 +1,47 @@
+name: Deploy React App to GitHub Pages
+
+# 1. Trigger: on push to main (you can change this to master or any other branch)
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      # 2.a. Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          # Ensures we fetch all history to allow gh-pages branch creation if needed
+          fetch-depth: 0
+
+      # 2.b. Setup Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'      # or the Node version your project requires
+          cache: 'npm'              # caches node_modules to speed up workflow
+
+      # 3.a. Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 3.b. Build the React app
+      - name: Build production assets
+        run: npm run build
+        env:
+          CI: true                 # Ensure build fails on warnings if you prefer
+
+      # 4. Deploy to GitHub Pages via gh-pages action
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages               # The branch the action should deploy to.
+          folder: build                  # The folder the action should deploy.
+          clean: true                    # Remove all existing files from gh-pages before deployment
+          commit-message: "chore: deploy React build to gh-pages [skip ci]"
+          # Use the default GITHUB_TOKEN to push. If you need a PAT, replace with your secret.
+          token: ${{ secrets.GITHUB_TOKEN }}
