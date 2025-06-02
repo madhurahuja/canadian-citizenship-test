@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Container, Typography, Link, Stack, Divider } from '@mui/material';
+import { Box, Container, Typography, Link as MuiLink, Stack, Divider } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import LanguageIcon from '@mui/icons-material/Language';
@@ -25,15 +26,15 @@ const Footer: React.FC = () => {
   const legalLinks = [
     {
       title: "Privacy Policy",
-      url: "/privacy"
+      to: "/privacy"
     },
     {
       title: "Terms of Use",
-      url: "/terms"
+      to: "/terms"
     },
     {
       title: "Disclaimer",
-      url: "/disclaimer"
+      to: "/disclaimer"
     }
   ];
 
@@ -57,7 +58,7 @@ const Footer: React.FC = () => {
             </Typography>
             <Stack spacing={1}>
               {officialLinks.map((link) => (
-                <Link
+                <MuiLink
                   key={link.title}
                   href={link.url}
                   target="_blank"
@@ -67,7 +68,7 @@ const Footer: React.FC = () => {
                 >
                   <LanguageIcon fontSize="small" />
                   {link.title}
-                </Link>
+                </MuiLink>
               ))}
             </Stack>
           </Box>
@@ -79,14 +80,15 @@ const Footer: React.FC = () => {
             </Typography>
             <Stack spacing={1}>
               {legalLinks.map((link) => (
-                <Link
+                <MuiLink
                   key={link.title}
-                  href={link.url}
+                  component={RouterLink}
+                  to={link.to}
                   color="text.secondary"
                   sx={{ display: 'inline-flex', alignItems: 'center' }}
                 >
                   {link.title}
-                </Link>
+                </MuiLink>
               ))}
             </Stack>
           </Box>
@@ -101,22 +103,22 @@ const Footer: React.FC = () => {
               All questions are based on the official study guide "Discover Canada".
             </Typography>
             <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-              <Link
-                href="https://github.com"
+              <MuiLink
+                href="https://github.com/madhurahuja"
                 target="_blank"
                 rel="noopener noreferrer"
                 color="text.secondary"
               >
                 <GitHubIcon />
-              </Link>
-              <Link
-                href="https://linkedin.com"
+              </MuiLink>
+              <MuiLink
+                href="https://www.linkedin.com/in/ahujamadhur/"
                 target="_blank"
                 rel="noopener noreferrer"
                 color="text.secondary"
               >
                 <LinkedInIcon />
-              </Link>
+              </MuiLink>
             </Box>
           </Box>
         </Box>

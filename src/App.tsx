@@ -104,7 +104,7 @@ const App: React.FC = () => {
                 }}
               >
                 <img
-                  src="/logo.svg"
+                  src="./logo.svg"
                   alt="Canadian Citizenship Test"
                   style={{ height: 40, marginRight: 16 }}
                 />

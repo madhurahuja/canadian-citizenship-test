@@ -1197,8 +1197,29 @@ export const getRandomQuestions = (count: number, category: string = 'all'): Que
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
-  // Return requested number of questions or all if count is larger than available questions
-  return shuffled.slice(0, Math.min(count, shuffled.length));
+  // Get the subset of questions and shuffle their options
+  return shuffled.slice(0, Math.min(count, shuffled.length)).map(question => {
+    // Create a copy of the question to avoid modifying the original
+    const questionCopy = { ...question };
+    
+    // Create pairs of options with their original indices to track the correct answer
+    const optionPairs = questionCopy.options.map((option, index) => ({
+      option,
+      isCorrect: option === questionCopy.correctAnswer
+    }));
+
+    // Shuffle the options
+    for (let i = optionPairs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [optionPairs[i], optionPairs[j]] = [optionPairs[j], optionPairs[i]];
+    }
+
+    // Update the question with shuffled options and track the new correct answer
+    questionCopy.options = optionPairs.map(pair => pair.option);
+    questionCopy.correctAnswer = optionPairs.find(pair => pair.isCorrect)!.option;
+
+    return questionCopy;
+  });
 };
 
 // Export a default set of questions for backward compatibility
